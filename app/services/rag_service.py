@@ -82,7 +82,9 @@ def execute_rag_pipeline(company_name: str, question: str) -> Dict[str, Any]:
     
     return {
         "answer": answer,
-        "sources": sources
+        "sources": sources,
+        "confidence": faithfulness_score,
+        "source_count": len(sources)
     }
 
 def execute_debug_rag(query: str) -> Dict[str, Any]:
