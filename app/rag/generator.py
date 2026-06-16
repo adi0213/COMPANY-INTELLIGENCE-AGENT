@@ -22,7 +22,7 @@ import logging
 from typing import Dict, Any
 from dotenv import load_dotenv
 from openai import OpenAI
-import google.generativeai as genai
+from google import genai
 
 load_dotenv()
 
@@ -58,8 +58,7 @@ class Generator:
         self.has_gemini = False
         if self.gemini_api_key:
             try:
-                genai.configure(api_key=self.gemini_api_key)
-                self.gemini_model = genai.GenerativeModel('gemini-2.5-flash')
+                self.gemini_client = genai.Client(api_key=self.gemini_api_key)
                 self.has_gemini = True
                 logger.info("Gemini 2.5 Flash Fallback is configured.")
             except Exception as e:
@@ -110,7 +109,10 @@ class Generator:
                         "solid, and comprehensive answer. Never say you don't have enough information."
                     )
                     prompt = f"{system_prompt}\n\n{user_prompt}{override_instruction}"
-                    gemini_response = self.gemini_model.generate_content(prompt)
+                    gemini_response = self.gemini_client.models.generate_content(
+                        model='gemini-2.5-flash',
+                        contents=prompt,
+                    )
                     if gemini_response.text:
                         return gemini_response.text
                 except Exception as gemini_err:

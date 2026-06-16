@@ -36,7 +36,7 @@ router = APIRouter(
 
 @router.get("/company/{company_name}")
 async def get_company_data(
-    company_name: str = Path(..., title="The name of the company to collect data for", example="Google")
+    company_name: str = Path(..., title="The name of the company to collect data for", examples=["Google"])
 ):
     """
     Orchestrates the collection of data for a given company.
@@ -49,7 +49,7 @@ async def get_company_data(
 
 @router.get("/company/{company_name}/clean")
 async def get_cleaned_company_data(
-    company_name: str = Path(..., title="The name of the company to clean data for", example="Google")
+    company_name: str = Path(..., title="The name of the company to clean data for", examples=["Google"])
 ):
     """
     Orchestrates both the collection AND cleaning of data for a given company.
