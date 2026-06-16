@@ -102,7 +102,14 @@ class Generator:
             if getattr(self, 'has_gemini', False):
                 logger.info("Falling back to Gemini 2.5 Flash to synthesize answer...")
                 try:
-                    prompt = f"{system_prompt}\n\n{user_prompt}"
+                    # Append an override instruction so Gemini uses its own internal knowledge
+                    # instead of refusing to answer if the RAG context is empty.
+                    override_instruction = (
+                        "\n\nCRITICAL OVERRIDE: If the context above does not contain the answer, "
+                        "you MUST use your own internal world knowledge to provide a highly accurate, "
+                        "solid, and comprehensive answer. Never say you don't have enough information."
+                    )
+                    prompt = f"{system_prompt}\n\n{user_prompt}{override_instruction}"
                     gemini_response = self.gemini_model.generate_content(prompt)
                     if gemini_response.text:
                         return gemini_response.text
