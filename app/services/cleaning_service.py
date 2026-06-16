@@ -25,9 +25,11 @@ from app.cleaners.salary_cleaner import normalize_salary
 from app.cleaners.deduplicator import deduplicate_news
 
 from app.utils.storage import save_cleaned_data
+from app.evaluation.latency_tracker import track_latency
 
 logger = logging.getLogger(__name__)
 
+@track_latency(endpoint_name="Cleaning")
 def clean_company_data(raw_data: Dict[str, Any]) -> Dict[str, Any]:
     """
     The main pipeline for transforming raw data into AI-ready data.

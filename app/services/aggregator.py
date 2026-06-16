@@ -17,10 +17,12 @@ from app.collectors.salary import SalaryCollector
 from app.collectors.products import ProductsCollector
 
 from app.utils.storage import save_raw_data
+from app.evaluation.latency_tracker import track_latency
 
 logger = logging.getLogger(__name__)
 
 
+@track_latency(endpoint_name="Collection")
 async def collect_company_data(company_name: str) -> Dict[str, Any]:
     """
     Runs all collectors concurrently with a SINGLE shared aiohttp session.

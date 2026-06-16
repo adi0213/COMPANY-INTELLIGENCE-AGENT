@@ -14,6 +14,7 @@ from app.embeddings.chunker import TextChunker
 from app.embeddings.embedder import Embedder
 from app.embeddings.metadata import create_metadata, generate_chunk_id
 from app.vector_db.indexer import index_chunks
+from app.evaluation.latency_tracker import track_latency
 
 logger = logging.getLogger(__name__)
 
@@ -21,6 +22,7 @@ logger = logging.getLogger(__name__)
 chunker = TextChunker()
 embedder = Embedder()
 
+@track_latency(endpoint_name="Embedding")
 def process_and_index_company(clean_data: Dict[str, Any]) -> Dict[str, Any]:
     """
     Chunks, embeds, and indexes cleaned data into ChromaDB.
