@@ -22,6 +22,7 @@ import logging
 from typing import Dict, Any
 from dotenv import load_dotenv
 from openai import OpenAI
+import google.generativeai as genai
 
 load_dotenv()
 
@@ -51,6 +52,18 @@ class Generator:
                 base_url="https://openrouter.ai/api/v1",
                 api_key=self.api_key
             )
+            
+        # Configure Gemini Fallback
+        self.gemini_api_key = os.getenv("GEMINI_API_KEY")
+        self.has_gemini = False
+        if self.gemini_api_key:
+            try:
+                genai.configure(api_key=self.gemini_api_key)
+                self.gemini_model = genai.GenerativeModel('gemini-2.5-pro')
+                self.has_gemini = True
+                logger.info("Gemini 2.5 Pro Fallback is configured.")
+            except Exception as e:
+                logger.error(f"Failed to configure Gemini Fallback: {e}")
 
     def generate(self, system_prompt: str, user_prompt: str) -> str:
         """
@@ -73,10 +86,31 @@ class Generator:
                 temperature=0.1,
                 max_tokens=500
             )
-            return response.choices[0].message.content
+            
+            answer = response.choices[0].message.content
+            
+            # If the primary LLM admits it doesn't know, trigger the fallback intentionally
+            if "i do not have enough information" in answer.lower() or "i don't have enough information" in answer.lower():
+                raise ValueError("Primary LLM returned an uninformed response.")
+                
+            return answer
             
         except Exception as e:
-            logger.warning(f"LLM Generation failed: {e}. Falling back to smart context synthesizer.")
+            logger.warning(f"Primary LLM Generation failed or was inadequate: {e}")
+            
+            # Tier 2: Try Gemini Fallback
+            if getattr(self, 'has_gemini', False):
+                logger.info("Falling back to Gemini 2.5 Pro to synthesize answer...")
+                try:
+                    prompt = f"{system_prompt}\n\n{user_prompt}"
+                    gemini_response = self.gemini_model.generate_content(prompt)
+                    if gemini_response.text:
+                        return gemini_response.text
+                except Exception as gemini_err:
+                    logger.warning(f"Gemini Fallback failed: {gemini_err}")
+            
+            # Tier 3: Local Synthesizer Fallback
+            logger.warning("Falling back to smart context synthesizer.")
             return self._synthesize_fallback(user_prompt)
 
     def _synthesize_fallback(self, user_prompt: str) -> str:
