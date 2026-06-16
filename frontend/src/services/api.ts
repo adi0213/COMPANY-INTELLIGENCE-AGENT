@@ -1,4 +1,4 @@
-const API_BASE = 'http://localhost:8000/api/v1';
+const API_BASE = 'https://company-intelligence-agent-6hca.onrender.com/api/v1';
 
 export async function analyzeCompany(company: string) {
   // Use AbortController for timeout — real pipeline takes 30-90 seconds
