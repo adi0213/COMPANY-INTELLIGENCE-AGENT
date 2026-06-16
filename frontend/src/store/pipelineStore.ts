@@ -35,7 +35,7 @@ export const usePipelineStore = create<PipelineState>((set, get) => ({
   setCompany: (name) => set({ company: name }),
 
   startPipeline: () => {
-    const freshStages = STAGES.map(s => ({ ...s, status: 'idle' as const }));
+    const freshStages: PipelineStage[] = STAGES.map(s => ({ ...s, status: 'idle' }));
     freshStages[0].status = 'processing';
     set({ stages: freshStages, activeStageIndex: 0, isRunning: true });
   },

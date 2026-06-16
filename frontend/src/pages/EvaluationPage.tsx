@@ -1,39 +1,86 @@
+import { useState, useEffect } from 'react';
 import PageLayout from '../components/layout/PageLayout';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, CartesianGrid } from 'recharts';
-
-const latencyData = [
-  { name: 'Collection', latency: 3200 },
-  { name: 'Cleaning', latency: 120 },
-  { name: 'Chunking', latency: 45 },
-  { name: 'Embedding', latency: 890 },
-  { name: 'Vector Search', latency: 32 },
-  { name: 'RAG', latency: 4500 },
-  { name: 'Agents', latency: 8200 },
-];
-
-const agentUsage = [
-  { name: 'Tech', value: 34 },
-  { name: 'News', value: 22 },
-  { name: 'Hiring', value: 18 },
-  { name: 'Salary', value: 12 },
-  { name: 'Company', value: 9 },
-  { name: 'Interview', value: 5 },
-];
-
-const hallucination = [
-  { query: 'Q1', score: 0.95 },
-  { query: 'Q2', score: 0.88 },
-  { query: 'Q3', score: 0.92 },
-  { query: 'Q4', score: 0.78 },
-  { query: 'Q5', score: 0.96 },
-  { query: 'Q6', score: 0.84 },
-  { query: 'Q7', score: 0.91 },
-  { query: 'Q8', score: 0.87 },
-];
+import { getMetrics } from '../services/api';
 
 const COLORS = ['#FFD400', '#FF5A36', '#3366FF', '#00C853', '#000', '#888'];
 
 export default function EvaluationPage() {
+  const [latencyData, setLatencyData] = useState<any[]>([]);
+  const [agentUsage, setAgentUsage] = useState<any[]>([]);
+  const [hallucination, setHallucination] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const data = await getMetrics();
+        
+        // Process Telemetry for Latency
+        const latencyMap: Record<string, { total: number, count: number }> = {};
+        data.telemetry.forEach((row: any) => {
+          // row = [id, timestamp, company, endpoint, latency_ms, token_count, estimated_cost]
+          const endpoint = row[3];
+          const latency = row[4];
+          if (!latencyMap[endpoint]) latencyMap[endpoint] = { total: 0, count: 0 };
+          latencyMap[endpoint].total += latency;
+          latencyMap[endpoint].count += 1;
+        });
+        
+        const newLatencyData = Object.keys(latencyMap).map(endpoint => ({
+          name: endpoint,
+          latency: Math.round(latencyMap[endpoint].total / latencyMap[endpoint].count)
+        }));
+        setLatencyData(newLatencyData);
+
+        // Process Evaluations for Hallucination and Agent Usage
+        const usageMap: Record<string, number> = {};
+        const newHallucinationData: any[] = [];
+        
+        // data.evaluations is already ordered DESC, so we take top 15 and reverse for chart
+        const recentEvals = data.evaluations.slice(0, 15).reverse();
+        
+        data.evaluations.forEach((row: any) => {
+          const agent = row[3];
+          if (!usageMap[agent]) usageMap[agent] = 0;
+          usageMap[agent] += 1;
+        });
+
+        recentEvals.forEach((row: any, index: number) => {
+          const score = row[5];
+          newHallucinationData.push({
+            query: `Q${index + 1}`,
+            score: score || 0
+          });
+        });
+
+        const newAgentUsage = Object.keys(usageMap).map(agent => ({
+          name: agent,
+          value: usageMap[agent]
+        }));
+        
+        setAgentUsage(newAgentUsage);
+        setHallucination(newHallucinationData);
+      } catch (err) {
+        console.error("Failed to fetch metrics", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    
+    fetchData();
+  }, []);
+
+  if (loading) {
+    return (
+      <PageLayout label="Phase 9" title="EVALUATION & MONITORING" subtitle="Loading real-time telemetry...">
+        <div style={{ textAlign: 'center', padding: '100px', fontSize: '1.2rem', fontFamily: 'JetBrains Mono' }}>
+          Loading live metrics from backend...
+        </div>
+      </PageLayout>
+    );
+  }
+
   return (
     <PageLayout
       label="Phase 9"
@@ -92,7 +139,7 @@ export default function EvaluationPage() {
           <div className="b-panel__body">
             <ResponsiveContainer width="100%" height={280}>
               <PieChart>
-                <Pie data={agentUsage} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={100} strokeWidth={3} stroke="#000" label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}>
+                <Pie data={agentUsage} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={100} strokeWidth={3} stroke="#000" label={({ name, percent }) => percent !== undefined ? `${name} ${(percent * 100).toFixed(0)}%` : name}>
                   {agentUsage.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                 </Pie>
                 <Tooltip />
