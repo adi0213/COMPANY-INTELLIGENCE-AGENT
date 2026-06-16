@@ -59,9 +59,9 @@ class Generator:
         if self.gemini_api_key:
             try:
                 genai.configure(api_key=self.gemini_api_key)
-                self.gemini_model = genai.GenerativeModel('gemini-2.5-pro')
+                self.gemini_model = genai.GenerativeModel('gemini-2.5-flash')
                 self.has_gemini = True
-                logger.info("Gemini 2.5 Pro Fallback is configured.")
+                logger.info("Gemini 2.5 Flash Fallback is configured.")
             except Exception as e:
                 logger.error(f"Failed to configure Gemini Fallback: {e}")
 
@@ -100,7 +100,7 @@ class Generator:
             
             # Tier 2: Try Gemini Fallback
             if getattr(self, 'has_gemini', False):
-                logger.info("Falling back to Gemini 2.5 Pro to synthesize answer...")
+                logger.info("Falling back to Gemini 2.5 Flash to synthesize answer...")
                 try:
                     prompt = f"{system_prompt}\n\n{user_prompt}"
                     gemini_response = self.gemini_model.generate_content(prompt)
