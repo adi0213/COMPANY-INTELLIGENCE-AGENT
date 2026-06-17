@@ -95,6 +95,24 @@ def process_and_index_company(clean_data: Dict[str, Any]) -> Dict[str, Any]:
             all_metadatas.append(create_metadata(company_name, "salary"))
             all_ids.append(generate_chunk_id(company_name, "salary", len(all_chunks), salary_text))
             
+    # 6. Process Executives (Hunter API)
+    executives = comp.get("executives", [])
+    if executives:
+        exec_text = "Key Executives and Personnel:\n" + "\n".join(executives)
+        all_chunks.append(exec_text)
+        all_metadatas.append(create_metadata(company_name, "overview"))
+        all_ids.append(generate_chunk_id(company_name, "overview_execs", len(all_chunks), exec_text))
+
+    # 7. Process Firecrawl Markdown
+    firecrawl = clean_data.get("firecrawl", {})
+    markdown = firecrawl.get("homepage_markdown", "")
+    if markdown:
+        fc_chunks = chunker.split_text(markdown)
+        for i, chunk in enumerate(fc_chunks):
+            all_chunks.append(chunk)
+            all_metadatas.append(create_metadata(company_name, "company"))
+            all_ids.append(generate_chunk_id(company_name, "firecrawl", i, chunk))
+            
     if not all_chunks:
         logger.warning(f"No text to embed for {company_name}")
         return {"chunks_processed": 0, "vector_dimension": 0}

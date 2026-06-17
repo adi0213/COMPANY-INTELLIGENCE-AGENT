@@ -95,6 +95,11 @@ def clean_company_data(raw_data: Dict[str, Any]) -> Dict[str, Any]:
         "products": [clean_html_and_whitespace(p) for p in raw_products.get("products", [])],
         "services": [clean_html_and_whitespace(s) for s in raw_products.get("services", [])]
     }
+    # 7. Clean Firecrawl Section
+    raw_firecrawl = raw_data.get("firecrawl", {})
+    clean_payload["firecrawl"] = {
+        "homepage_markdown": raw_firecrawl.get("homepage_markdown", "")
+    }
     
     # Save the cleaned payload
     try:

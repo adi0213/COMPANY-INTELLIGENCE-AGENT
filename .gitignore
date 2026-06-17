@@ -8,7 +8,7 @@ __pycache__/
 env/
 .venv/
 data/chroma_db/
-data/metrics.db*
+data/*.db*
 data/raw/
 data/cleaned/
 data/embeddings/

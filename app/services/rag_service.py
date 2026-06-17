@@ -32,7 +32,7 @@ reranker = Reranker(top_k=5)
 context_builder = ContextBuilder()
 prompt_builder = PromptBuilder()
 
-# Connect to local Ollama running llama3.1
+# Connect to OpenRouter (or fallback chain)
 generator = Generator(model="llama3.1")
 
 source_manager = SourceManager()
@@ -41,6 +41,10 @@ source_manager = SourceManager()
 def execute_rag_pipeline(company_name: str, question: str) -> Dict[str, Any]:
     """
     Executes the full Retrieval-Augmented Generation pipeline.
+    
+    KEY CHANGE: Even when no chunks are retrieved, we still call the LLM 
+    so it can answer using its own world knowledge. We never return 
+    "no data available" to the user.
     """
     logger.info(f"Executing RAG pipeline for company: {company_name}")
     
@@ -52,32 +56,25 @@ def execute_rag_pipeline(company_name: str, question: str) -> Dict[str, Any]:
     # 2. Rerank (High Precision)
     top_chunks = reranker.rerank(question, raw_chunks)
     
-    if not top_chunks:
-        return {
-            "answer": "I do not have any information in my database to answer this question.",
-            "sources": []
-        }
-        
-    # 3. Build Context
+    # 3. Build Context (even if empty — the LLM will use world knowledge)
     context_str = context_builder.build_context(top_chunks)
-    
+        
     # 4. Build Prompts
     system_prompt = prompt_builder.get_system_prompt()
     user_prompt = prompt_builder.build_user_prompt(question, context_str)
     
-    # 5. Generate Answer
+    # 5. Generate Answer (LLM will supplement with world knowledge if context is sparse)
     answer = generator.generate(system_prompt, user_prompt)
     
     # 6. Extract Sources
-    sources = source_manager.extract_sources(top_chunks)
+    sources = source_manager.extract_sources(top_chunks) if top_chunks else []
     
-    # [NEW] 7. LLMOps Evaluation (LLM-as-a-Judge)
+    # 7. Quality Evaluation (lightweight heuristic, no extra LLM call)
     hallucination_score = evaluate_rag_output(context_str, answer)
-    # Since faithfulness is essentially groundedness/lack of hallucinations in this simple model, we map them
     faithfulness_score = hallucination_score
     
     # Log the evaluation to our SQLite Telemetry Database
-    agent_name = "BaseRAG" # Will be overridden by the caller agent
+    agent_name = "BaseRAG"
     log_evaluation(question, agent_name, len(top_chunks), hallucination_score, faithfulness_score)
     
     return {

@@ -1,6 +1,7 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useCompanyStore } from '../store/companyStore';
+import ReactMarkdown from 'react-markdown';
 
 const fadeIn = {
   hidden: { opacity: 0, y: 20 },
@@ -10,9 +11,6 @@ const fadeIn = {
 function Section({ icon, title, data, delay = 0 }: { icon: string; title: string; data: any; delay?: number }) {
   if (!data || !data.content) return null;
   
-  const isFallback = data.confidence < 0.5;
-  const confColor = data.confidence > 0.8 ? '#00C853' : (data.confidence > 0.5 ? '#FFD400' : '#FF5A36');
-
   return (
     <motion.div
       className="b-panel"
@@ -25,15 +23,6 @@ function Section({ icon, title, data, delay = 0 }: { icon: string; title: string
       <div className="b-panel__header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <span>{icon} {title}</span>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: '0.7rem' }}>
-          <span style={{ 
-            background: confColor, 
-            color: '#000', 
-            padding: '2px 6px', 
-            borderRadius: 4, 
-            fontWeight: 700 
-          }}>
-            Conf: {Math.round(data.confidence * 100)}%
-          </span>
           {data.sources > 0 && (
             <span style={{ border: '1px solid #000', padding: '2px 6px', borderRadius: 4 }}>
               Sources: {data.sources}
@@ -41,13 +30,8 @@ function Section({ icon, title, data, delay = 0 }: { icon: string; title: string
           )}
         </div>
       </div>
-      <div className="b-panel__body" style={{ lineHeight: 1.8, whiteSpace: 'pre-wrap', fontSize: '0.95rem' }}>
-        {data.content}
-        {isFallback && (
-          <div style={{ marginTop: 12, padding: 8, background: '#FFF5F5', borderLeft: '3px solid #FF5A36', fontSize: '0.8rem', color: '#888' }}>
-            <em>* Synthesized from AI World Knowledge (Low Scraped Data)</em>
-          </div>
-        )}
+      <div className="b-panel__body react-markdown-container" style={{ lineHeight: 1.8, fontSize: '0.95rem' }}>
+        <ReactMarkdown>{data.content}</ReactMarkdown>
       </div>
     </motion.div>
   );
@@ -143,9 +127,6 @@ export default function CompanyResultPage() {
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <span className="b-badge" style={{ marginBottom: 12, display: 'inline-block' }}>📋 AI-Generated Executive Summary</span>
-                <span style={{ fontSize: '0.7rem', color: '#888', border: '1px solid #333', padding: '2px 8px', borderRadius: 4 }}>
-                  Confidence: {Math.round(result.executive_summary.confidence * 100)}%
-                </span>
               </div>
               <p style={{ fontSize: '1.1rem', lineHeight: 1.8, color: '#ccc' }}>
                 {result.executive_summary.content}

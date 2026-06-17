@@ -12,6 +12,7 @@ This is the production endpoint that powers the frontend search experience.
 """
 
 import logging
+import asyncio
 from typing import Dict, Any
 
 from app.services.aggregator import collect_company_data
@@ -53,8 +54,8 @@ async def analyze_company(company_name: str) -> Dict[str, Any]:
     logger.info(f"[CompanyAnalyzer] Step 2/5: Cleaning data...")
     clean_data = clean_company_data(raw_data)
 
-    # ── Step 2.5: Enrich ─────────────────────────────────────────
-    logger.info(f"[CompanyAnalyzer] Step 3/5: Enriching sparse data...")
+    # ── Step 2.5: Enrich (PARALLEL) ──────────────────────────────
+    logger.info(f"[CompanyAnalyzer] Step 3/5: Enriching sparse data concurrently...")
     enrichers = [
         CompanyEnricher(),
         TechnologyEnricher(),
@@ -62,104 +63,111 @@ async def analyze_company(company_name: str) -> Dict[str, Any]:
         HiringEnricher(),
         NewsEnricher()
     ]
-    for enricher in enrichers:
+    
+    async def _run_enricher(enricher):
         try:
-            updates = enricher.enrich(company_name, clean_data)
-            clean_data.update(updates)
+            return await asyncio.to_thread(enricher.enrich, company_name, clean_data)
         except Exception as e:
             logger.error(f"[CompanyAnalyzer] Enricher failed: {e}")
+            return {}
+
+    enrichment_results = await asyncio.gather(*[_run_enricher(e) for e in enrichers])
+    
+    # Merge all enrichment updates back into clean_data
+    for updates in enrichment_results:
+        clean_data.update(updates)
 
     # ── Step 3: Embed & Index ────────────────────────────────────
     logger.info(f"[CompanyAnalyzer] Step 4/5: Embedding and indexing in ChromaDB...")
     index_result = process_and_index_company(clean_data)
     logger.info(f"[CompanyAnalyzer] Indexed {index_result.get('chunks_processed', 0)} chunks")
 
-    # ── Step 4: Run All Agents ───────────────────────────────────
-    logger.info(f"[CompanyAnalyzer] Step 5/5: Running specialized agents...")
+    # ── Step 4: Run All Agents (PARALLEL with limits) ────────────
+    logger.info(f"[CompanyAnalyzer] Step 5/5: Running specialized agents concurrently...")
+    
+    # Limit to 3 concurrent RAG executions to prevent OpenBLAS out-of-memory errors
+    # during concurrent sentence-transformer embeddings
+    semaphore = asyncio.Semaphore(3)
 
-    def _safe_execute(agent, question: str) -> Dict[str, Any]:
-        """Execute an agent, apply quality gate, return structured output."""
-        try:
-            result = agent.execute(company_name, question)
+    async def _safe_execute_async(agent, question: str) -> Dict[str, Any]:
+        """Execute an agent concurrently, apply quality gate, return structured output."""
+        async with semaphore:
+            try:
+                # Run the synchronous agent.execute in a background thread
+                result = await asyncio.to_thread(agent.execute, company_name, question)
             
-            # QUALITY GATE: If confidence is very low, synthesize from world knowledge directly
-            confidence = result.get("confidence", 0.0)
-            if confidence < 0.2:
-                logger.warning(f"[QualityGate] {agent.name} failed confidence threshold ({confidence}). Invoking LLM fallback...")
-                system_prompt = "You are an expert analyst. Answer comprehensively using internal knowledge. Do not say you lack info."
-                new_answer = _generator.generate(system_prompt, question)
-                return {
-                    "content": new_answer,
-                    "confidence": 0.2, # Minimum synthetic confidence
-                    "sources": 0,
-                    "source_types": ["LLM Synthesis"]
-                }
+                # We log confidence, but we no longer override answers because we explicitly requested
+                # the LLM to synthesize exhaustive information using world knowledge.
+                confidence = result.get("confidence", 0.0)
                 
-            return {
-                "content": result.get("answer", "No data available."),
-                "confidence": confidence,
-                "sources": result.get("source_count", 0),
-                "source_types": ["Scraped Context"] if result.get("source_count", 0) > 0 else ["Fallback"]
-            }
-        except Exception as e:
-            logger.error(f"[CompanyAnalyzer] Agent {agent.name} failed: {e}")
-            return {
-                "content": f"Agent encountered an error: {str(e)}",
-                "confidence": 0.0,
-                "sources": 0,
-                "source_types": ["Error"]
-            }
+                return {
+                    "content": result.get("answer", "No data available."),
+                    "confidence": confidence,
+                    "sources": result.get("source_count", 0),
+                    "source_types": ["Scraped & Synthetic Enrichment"]
+                }
+            except Exception as e:
+                logger.error(f"[CompanyAnalyzer] Agent {agent.name} failed: {e}")
+                return {
+                    "content": f"Agent encountered an error: {str(e)}",
+                    "confidence": 0.0,
+                    "sources": 0,
+                    "source_types": ["Error"]
+                }
 
-    overview_data = _safe_execute(
-        _coordinator.company_agent,
-        f"Give a comprehensive overview of {company_name} including its industry, headquarters, founding date, CEO, employee count, and website."
-    )
+    # Define all agent tasks
+    tasks = {
+        "overview": _safe_execute_async(
+            _coordinator.company_agent,
+            f"Give a comprehensive overview of {company_name} including its industry, headquarters, founding date, CEO, employee count, and website."
+        ),
+        "latest_developments": _safe_execute_async(
+            _coordinator.news_agent,
+            f"What are the latest major developments, announcements, product launches, acquisitions, partnerships, and AI initiatives at {company_name}?"
+        ),
+        "key_technologies": _safe_execute_async(
+            _coordinator.tech_agent,
+            f"What are the key technologies, frameworks, programming languages, cloud platforms, and AI tools used or developed by {company_name}?"
+        ),
+        "business_areas": _safe_execute_async(
+            _coordinator.company_agent,
+            f"What are the most important business areas, revenue drivers, strategic business units, and growth areas for {company_name}?"
+        ),
+        "interview_focus": _safe_execute_async(
+            _coordinator.interview_agent,
+            f"What are the common technical and behavioral interview focus areas, topics, and preparation tips for {company_name}?"
+        ),
+        "hiring_trends": _safe_execute_async(
+            _coordinator.hiring_agent,
+            f"What are the current hiring trends, top roles, most common departments, and emerging skill requirements at {company_name}?"
+        ),
+        "salary_insights": _safe_execute_async(
+            _coordinator.salary_agent,
+            f"What are the typical salary ranges for Software Engineer, Data Scientist, ML Engineer, and Product Manager at {company_name}?"
+        ),
+        "executive_summary": _safe_execute_async(
+            _coordinator.company_agent,
+            f"Write a 2-3 sentence executive summary of {company_name}'s current strategic position, key initiatives, and competitive advantages."
+        )
+    }
 
-    news_data = _safe_execute(
-        _coordinator.news_agent,
-        f"What are the latest major developments, announcements, product launches, acquisitions, partnerships, and AI initiatives at {company_name}?"
-    )
-
-    tech_data = _safe_execute(
-        _coordinator.tech_agent,
-        f"What are the key technologies, frameworks, programming languages, cloud platforms, and AI tools used or developed by {company_name}?"
-    )
-
-    business_data = _safe_execute(
-        _coordinator.company_agent,
-        f"What are the most important business areas, revenue drivers, strategic business units, and growth areas for {company_name}?"
-    )
-
-    interview_data = _safe_execute(
-        _coordinator.interview_agent,
-        f"What are the common technical and behavioral interview focus areas, topics, and preparation tips for {company_name}?"
-    )
-
-    hiring_data = _safe_execute(
-        _coordinator.hiring_agent,
-        f"What are the current hiring trends, top roles, most common departments, and emerging skill requirements at {company_name}?"
-    )
-
-    salary_data = _safe_execute(
-        _coordinator.salary_agent,
-        f"What are the typical salary ranges for Software Engineer, Data Scientist, ML Engineer, and Product Manager at {company_name}?"
-    )
-
-    summary_data = _safe_execute(
-        _coordinator.company_agent,
-        f"Write a 2-3 sentence executive summary of {company_name}'s current strategic position, key initiatives, and competitive advantages."
-    )
+    # Run all tasks concurrently
+    results = await asyncio.gather(*tasks.values())
+    
+    # Map results back to keys
+    keys = list(tasks.keys())
+    agent_data = dict(zip(keys, results))
 
     logger.info(f"[CompanyAnalyzer] === ANALYSIS COMPLETE: {company_name} ===")
 
     return {
         "company": company_name,
-        "overview": overview_data,
-        "latest_developments": news_data,
-        "key_technologies": tech_data,
-        "business_areas": business_data,
-        "interview_focus": interview_data,
-        "hiring_trends": hiring_data,
-        "salary_insights": salary_data,
-        "executive_summary": summary_data,
+        "overview": agent_data["overview"],
+        "latest_developments": agent_data["latest_developments"],
+        "key_technologies": agent_data["key_technologies"],
+        "business_areas": agent_data["business_areas"],
+        "interview_focus": agent_data["interview_focus"],
+        "hiring_trends": agent_data["hiring_trends"],
+        "salary_insights": agent_data["salary_insights"],
+        "executive_summary": agent_data["executive_summary"],
     }

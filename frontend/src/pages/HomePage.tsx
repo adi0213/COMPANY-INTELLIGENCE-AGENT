@@ -200,27 +200,7 @@ export default function HomePage() {
             </motion.div>
           )}
 
-          {/* Popular Companies */}
-          {!loading && (
-            <motion.div variants={fadeUp} style={{ marginTop: 48 }}>
-              <p className="mono" style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.15em', color: '#888', marginBottom: 12 }}>
-                Try Searching
-              </p>
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center' }}>
-                {popularCompanies.map(c => (
-                  <button
-                    key={c}
-                    className="b-btn b-btn--sm"
-                    onClick={() => { setInput(c); handleSearch(c); }}
-                    disabled={loading}
-                    style={{ fontSize: '0.75rem' }}
-                  >
-                    {c}
-                  </button>
-                ))}
-              </div>
-            </motion.div>
-          )}
+
         </motion.div>
       </section>
 

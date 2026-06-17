@@ -6,7 +6,8 @@ Uses html.parser instead of lxml's xml parser to avoid dependency issues.
 """
 
 import aiohttp
-from bs4 import BeautifulSoup
+import warnings
+from bs4 import BeautifulSoup, XMLParsedAsHTMLWarning
 import logging
 import urllib.parse
 from typing import Any, Dict, List
@@ -39,7 +40,9 @@ class NewsCollector(BaseCollector):
                 if response.status == 200:
                     xml_content = await response.text()
                     # Use html.parser as a safe fallback — works without lxml installed
-                    soup = BeautifulSoup(xml_content, features="html.parser")
+                    with warnings.catch_warnings():
+                        warnings.filterwarnings("ignore", category=XMLParsedAsHTMLWarning)
+                        soup = BeautifulSoup(xml_content, features="html.parser")
                     items = soup.find_all("item")
 
                     for item in items[:10]:

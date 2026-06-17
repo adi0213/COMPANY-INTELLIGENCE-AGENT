@@ -3,7 +3,7 @@ const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000/api/v1'
 export async function analyzeCompany(company: string) {
   // Use AbortController for timeout — real pipeline takes 30-90 seconds
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 120_000); // 2 minute timeout
+  const timeout = setTimeout(() => controller.abort(), 300_000); // 5 minute timeout
 
   try {
     const res = await fetch(`${API_BASE}/company/analyze`, {
