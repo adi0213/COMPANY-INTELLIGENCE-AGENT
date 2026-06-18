@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { useLocation, Navigate, Link } from 'react-router-dom';
 
 export default function ResultsDashboardPage() {

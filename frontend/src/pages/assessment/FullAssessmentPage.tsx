@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { assessmentApi } from '../../services/assessmentApi';
 import LoadingIndicator from '../../components/common/LoadingIndicator';
