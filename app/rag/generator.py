@@ -78,7 +78,7 @@ class Generator:
         except ImportError:
             logger.warning("Ollama SDK not installed.")
 
-    def generate(self, system_prompt: str, user_prompt: str) -> str:
+    def generate(self, system_prompt: str, user_prompt: str, json_mode: bool = False) -> str:
         """
         Multi-tier LLM generation with intelligent fallback chain.
         Tier 1: Anthropic Claude / OpenRouter
@@ -88,7 +88,7 @@ class Generator:
         """
         if self.use_mock:
             logger.info("No API keys configured. Attempting fallbacks...")
-            return self._try_fallback_chain(system_prompt, user_prompt)
+            return self._try_fallback_chain(system_prompt, user_prompt, json_mode)
             
         try:
             answer = ""
@@ -138,9 +138,9 @@ class Generator:
             
         except Exception as e:
             logger.warning(f"Primary LLM Generation failed: {e}")
-            return self._try_fallback_chain(system_prompt, user_prompt)
+            return self._try_fallback_chain(system_prompt, user_prompt, json_mode)
 
-    def _try_fallback_chain(self, system_prompt: str, user_prompt: str) -> str:
+    def _try_fallback_chain(self, system_prompt: str, user_prompt: str, json_mode: bool = False) -> str:
         """
         Attempts Ollama → Gemini → Mock in order.
         """
@@ -167,11 +167,14 @@ class Generator:
         if getattr(self, 'has_gemini', False):
             logger.info("Trying Gemini 2.5 Flash...")
             try:
-                override_instruction = (
-                    "\n\nCRITICAL: You MUST use your own internal world knowledge to provide a highly "
-                    "accurate, comprehensive answer. Never say you don't have enough information. "
-                    "Deliver a premium-quality intelligence report."
-                )
+                if json_mode:
+                    override_instruction = "\n\nCRITICAL: You MUST return ONLY valid JSON. No markdown, no explanations."
+                else:
+                    override_instruction = (
+                        "\n\nCRITICAL: You MUST use your own internal world knowledge to provide a highly "
+                        "accurate, comprehensive answer. Never say you don't have enough information. "
+                        "Deliver a premium-quality intelligence report."
+                    )
                 prompt = f"{system_prompt}\n\n{user_prompt}{override_instruction}"
                 gemini_response = self.gemini_client.models.generate_content(
                     model='gemini-2.5-flash',

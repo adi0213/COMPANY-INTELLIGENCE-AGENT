@@ -20,6 +20,7 @@ Common Mistakes:
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.routes import router as api_router
+from app.assessment_agent.routes.assessment_routes import router as assessment_router
 
 # Initialize the FastAPI application
 # We provide metadata that will appear in the auto-generated /docs endpoint.
@@ -42,6 +43,7 @@ app.add_middleware(
 # We prefix them with /api/v1 as a best practice for API versioning.
 # If we ever make breaking changes, we can create /api/v2 without breaking existing clients.
 app.include_router(api_router, prefix="/api/v1")
+app.include_router(assessment_router, prefix="/api/v1")
 
 @app.get("/")
 async def root():

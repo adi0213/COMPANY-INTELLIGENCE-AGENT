@@ -29,30 +29,35 @@ const nodeStyle = (bg: string, color = '#000') => ({
 });
 
 const initialNodes: Node[] = [
-  { id: '1', position: { x: 250, y: 0 }, data: { label: '🌐 Internet' }, style: nodeStyle('#F8F6F0') },
-  { id: '2', position: { x: 250, y: 100 }, data: { label: '📥 Collection' }, style: nodeStyle('#FFD400') },
-  { id: '3', position: { x: 250, y: 200 }, data: { label: '🧹 Cleaning' }, style: nodeStyle('#FFD400') },
-  { id: '4', position: { x: 250, y: 300 }, data: { label: '✂️ Chunking' }, style: nodeStyle('#FFD400') },
-  { id: '5', position: { x: 250, y: 400 }, data: { label: '🔤 Tokenization' }, style: nodeStyle('#FFD400') },
-  { id: '6', position: { x: 250, y: 500 }, data: { label: '🧮 Embeddings' }, style: nodeStyle('#3366FF', '#fff') },
-  { id: '7', position: { x: 250, y: 600 }, data: { label: '🗄️ Vector DB' }, style: nodeStyle('#3366FF', '#fff') },
-  { id: '8', position: { x: 250, y: 700 }, data: { label: '🔍 RAG' }, style: nodeStyle('#FF5A36', '#fff') },
-  { id: '9', position: { x: 250, y: 800 }, data: { label: '🤖 Agents' }, style: nodeStyle('#FF5A36', '#fff') },
-  { id: '10', position: { x: 250, y: 900 }, data: { label: '📊 Reports' }, style: nodeStyle('#00C853', '#fff') },
-  { id: '11', position: { x: 250, y: 1000 }, data: { label: '📈 Evaluation' }, style: nodeStyle('#00C853', '#fff') },
+  // Top Row (Data Pipeline)
+  { id: '1', position: { x: 50, y: 50 }, data: { label: '🌐 Internet' }, style: nodeStyle('#F8F6F0') },
+  { id: '2', position: { x: 300, y: 50 }, data: { label: '📥 Collection' }, style: nodeStyle('#FFD400') },
+  { id: '3', position: { x: 550, y: 50 }, data: { label: '🧹 Cleaning' }, style: nodeStyle('#FFD400') },
+  { id: '4', position: { x: 800, y: 50 }, data: { label: '✂️ Chunking' }, style: nodeStyle('#FFD400') },
+  { id: '5', position: { x: 1050, y: 50 }, data: { label: '🔤 Tokenization' }, style: nodeStyle('#FFD400') },
+  
+  // Middle Row (Vector DB -> RAG -> Agents)
+  { id: '6', position: { x: 1050, y: 200 }, data: { label: '🧮 Embeddings' }, style: nodeStyle('#3366FF', '#fff') },
+  { id: '7', position: { x: 800, y: 200 }, data: { label: '🗄️ Vector DB' }, style: nodeStyle('#3366FF', '#fff') },
+  { id: '8', position: { x: 550, y: 200 }, data: { label: '🔍 RAG' }, style: nodeStyle('#FF5A36', '#fff') },
+  { id: '9', position: { x: 300, y: 200 }, data: { label: '🤖 Agents' }, style: nodeStyle('#FF5A36', '#fff') },
+  { id: '10', position: { x: 50, y: 200 }, data: { label: '📊 Reports' }, style: nodeStyle('#00C853', '#fff') },
+  
+  // Bottom Row (Evaluation)
+  { id: '11', position: { x: 50, y: 350 }, data: { label: '📈 Evaluation' }, style: nodeStyle('#00C853', '#fff') },
 ];
 
 const initialEdges: Edge[] = [
-  { id: 'e1-2', source: '1', target: '2', style: { strokeWidth: 3 } },
-  { id: 'e2-3', source: '2', target: '3', style: { strokeWidth: 3 } },
-  { id: 'e3-4', source: '3', target: '4', style: { strokeWidth: 3 } },
-  { id: 'e4-5', source: '4', target: '5', style: { strokeWidth: 3 } },
-  { id: 'e5-6', source: '5', target: '6', style: { strokeWidth: 3 } },
-  { id: 'e6-7', source: '6', target: '7', style: { strokeWidth: 3 } },
-  { id: 'e7-8', source: '7', target: '8', style: { strokeWidth: 3 } },
-  { id: 'e8-9', source: '8', target: '9', style: { strokeWidth: 3 } },
-  { id: 'e9-10', source: '9', target: '10', style: { strokeWidth: 3 } },
-  { id: 'e10-11', source: '10', target: '11', style: { strokeWidth: 3 } },
+  { id: 'e1-2', source: '1', target: '2', type: 'smoothstep', animated: true, style: { strokeWidth: 3 } },
+  { id: 'e2-3', source: '2', target: '3', type: 'smoothstep', animated: true, style: { strokeWidth: 3 } },
+  { id: 'e3-4', source: '3', target: '4', type: 'smoothstep', animated: true, style: { strokeWidth: 3 } },
+  { id: 'e4-5', source: '4', target: '5', type: 'smoothstep', animated: true, style: { strokeWidth: 3 } },
+  { id: 'e5-6', source: '5', target: '6', type: 'smoothstep', animated: true, style: { strokeWidth: 3 } },
+  { id: 'e6-7', source: '6', target: '7', type: 'smoothstep', animated: true, style: { strokeWidth: 3 } },
+  { id: 'e7-8', source: '7', target: '8', type: 'smoothstep', animated: true, style: { strokeWidth: 3 } },
+  { id: 'e8-9', source: '8', target: '9', type: 'smoothstep', animated: true, style: { strokeWidth: 3 } },
+  { id: 'e9-10', source: '9', target: '10', type: 'smoothstep', animated: true, style: { strokeWidth: 3 } },
+  { id: 'e10-11', source: '10', target: '11', type: 'smoothstep', animated: true, style: { strokeWidth: 3 } },
 ];
 
 const routeMap: Record<string, string> = {
@@ -77,7 +82,7 @@ export default function ArchitecturePage() {
       title="SYSTEM ARCHITECTURE"
       subtitle="Click any node to explore that stage of the pipeline. Zoom and pan to navigate."
     >
-      <div style={{ height: 700, border: '3px solid #000', background: '#fff' }}>
+      <div style={{ height: 500, border: '3px solid #000', background: '#fff' }}>
         <ReactFlow
           nodes={nodes}
           edges={edges}

@@ -48,8 +48,8 @@ async def collect_company_data(company_name: str) -> Dict[str, Any]:
     """
     logger.info(f"Starting premium data collection for {company_name}")
 
-    # Increased timeout since Firecrawl and proxy scrape can take longer
-    timeout = aiohttp.ClientTimeout(total=30, connect=10)
+    # Reduced timeout to ensure overall analysis finishes under 30s
+    timeout = aiohttp.ClientTimeout(total=15, connect=5)
     connector = aiohttp.TCPConnector(limit=5, force_close=True)
     headers = {"User-Agent": "CompanyIntelligenceAgent/1.0 (Research Project)"}
 

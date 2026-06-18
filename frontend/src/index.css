@@ -728,15 +728,28 @@ code, .mono {
 }
 
 /* ── Markdown Styles ───────────────────────────────────────── */
-.react-markdown-container strong {
-  background-color: var(--accent);
-  color: var(--primary);
-  padding: 0 4px;
+.react-markdown-container h1,
+.react-markdown-container h2,
+.react-markdown-container h3 {
+  font-family: var(--font-mono);
   font-weight: 800;
-  box-shadow: 2px 2px 0px var(--primary);
-  border: 1px solid var(--primary);
-  display: inline-block;
-  margin: 2px 2px;
+  margin-top: var(--space-xl);
+  margin-bottom: var(--space-sm);
+  color: var(--primary);
+  border-bottom: 2px solid #EEEAE2;
+  padding-bottom: 8px;
+}
+
+.react-markdown-container h1 { font-size: 1.8rem; }
+.react-markdown-container h2 { font-size: 1.5rem; }
+.react-markdown-container h3 { font-size: 1.2rem; }
+
+.react-markdown-container strong {
+  color: var(--primary);
+  font-weight: 800;
+  background: rgba(255, 212, 0, 0.3); /* Subtle yellow highlight instead of massive block */
+  padding: 0 4px;
+  border-radius: 2px;
 }
 
 .react-markdown-container ul {

@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { useCompanyStore } from '../store/companyStore';
 import { analyzeCompany } from '../services/api';
 
-const popularCompanies = ['Google', 'Microsoft', 'Amazon', 'Apple', 'Netflix', 'OpenAI', 'NVIDIA', 'Tesla', 'Meta', 'Spotify'];
+
 
 const loadingStages = [
   'Collecting company data from sources...',
@@ -73,18 +73,19 @@ export default function HomePage() {
       <section style={{
         minHeight: 'calc(100vh - 60px)',
         display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
         alignItems: 'center',
         padding: '64px 24px',
         borderBottom: '5px solid #000',
       }}>
-        <motion.div
-          initial="hidden"
-          animate="show"
-          variants={stagger}
-          style={{ textAlign: 'center', maxWidth: 800, width: '100%' }}
-        >
+        <div className="container" style={{ width: '100%' }}>
+          <div className="grid-2" style={{ alignItems: 'center' }}>
+            {/* Left Side: Company Intelligence Search */}
+            <motion.div
+              initial="hidden"
+              animate="show"
+              variants={stagger}
+              style={{ paddingRight: '20px' }}
+            >
           <motion.p
             variants={fadeUp}
             className="mono"
@@ -93,18 +94,18 @@ export default function HomePage() {
             AI-Powered Company Research
           </motion.p>
 
-          <motion.h1 variants={fadeUp} style={{ fontSize: 'clamp(2.5rem, 6vw, 4.5rem)', marginBottom: 16 }}>
+          <motion.h1 variants={fadeUp} style={{ fontSize: 'clamp(2rem, 5vw, 4rem)', marginBottom: 16 }}>
             COMPANY
             <br />
             <span style={{ color: '#FFD400', WebkitTextStroke: '2px #000' }}>INTELLIGENCE_</span>
           </motion.h1>
 
-          <motion.p variants={fadeUp} style={{ fontSize: '1.1rem', color: '#888', maxWidth: 500, margin: '0 auto 40px', lineHeight: 1.7 }}>
+          <motion.p variants={fadeUp} style={{ fontSize: '1.1rem', color: '#888', maxWidth: 500, marginBottom: 40, lineHeight: 1.7 }}>
             Search any company and receive AI-powered insights on technology, hiring, salary, interviews, and strategy.
           </motion.p>
 
           {/* Search Bar */}
-          <motion.div variants={fadeUp} style={{ display: 'flex', gap: 0, maxWidth: 600, margin: '0 auto', width: '100%' }}>
+          <motion.div variants={fadeUp} style={{ display: 'flex', gap: 0, width: '100%' }}>
             <input
               className="b-input"
               value={input}
@@ -134,7 +135,7 @@ export default function HomePage() {
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              style={{ marginTop: 32, maxWidth: 500, margin: '32px auto 0' }}
+              style={{ marginTop: 32 }}
             >
               <div style={{
                 padding: '16px 24px',
@@ -161,7 +162,7 @@ export default function HomePage() {
                   {loadingStage}
                 </motion.div>
               </div>
-              <p className="mono text-muted" style={{ fontSize: '0.7rem', marginTop: 8, textAlign: 'center' }}>
+              <p className="mono text-muted" style={{ fontSize: '0.7rem', marginTop: 8 }}>
                 Full AI pipeline running — this may take 30-90 seconds.
               </p>
             </motion.div>
@@ -172,7 +173,7 @@ export default function HomePage() {
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              style={{ marginTop: 24, maxWidth: 600, margin: '24px auto 0' }}
+              style={{ marginTop: 24 }}
             >
               <div style={{
                 padding: '16px 24px',
@@ -201,7 +202,51 @@ export default function HomePage() {
           )}
 
 
-        </motion.div>
+            </motion.div>
+
+            {/* Right Side: Assessment Center */}
+            <motion.div
+              initial={{ opacity: 0, x: 30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.2, duration: 0.5 }}
+            >
+              <div className="b-card" style={{ border: '5px solid var(--primary)', background: '#fff', padding: '40px' }}>
+                <h2 style={{ borderBottom: '3px solid var(--primary)', paddingBottom: 10, marginBottom: 20 }}>
+                  ASSESSMENT CENTER
+                </h2>
+                <p style={{ marginBottom: 30, color: 'var(--muted)', fontSize: '1rem' }}>
+                  Test your technical and logical skills with our AI-powered assessments.
+                </p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 15 }}>
+                  <button 
+                    className="b-btn b-btn--accent" 
+                    onClick={() => navigate('/assessment/full')}
+                    style={{ width: '100%', justifyContent: 'space-between', fontSize: '1.1rem' }}
+                  >
+                    <span>★ FULL ASSESSMENT</span>
+                    <span>→</span>
+                  </button>
+                  <button 
+                    className="b-btn" 
+                    onClick={() => navigate('/assessment/coding')}
+                    style={{ width: '100%', justifyContent: 'space-between' }}
+                  >
+                    <span>CODING CHALLENGE</span>
+                    <span>→</span>
+                  </button>
+                  <button 
+                    className="b-btn" 
+                    onClick={() => navigate('/assessment/aptitude')}
+                    style={{ width: '100%', justifyContent: 'space-between' }}
+                  >
+                    <span>APTITUDE PUZZLES</span>
+                    <span>→</span>
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        </div>
       </section>
 
       {/* ── Features Grid ────────────────────────────────── */}

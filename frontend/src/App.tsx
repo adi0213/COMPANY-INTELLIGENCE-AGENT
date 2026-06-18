@@ -21,6 +21,12 @@ import ReportsPage from './pages/ReportsPage';
 import EvaluationPage from './pages/EvaluationPage';
 import LiveDemoPage from './pages/LiveDemoPage';
 
+// Assessment pages
+import CodingAssessmentPage from './pages/assessment/CodingAssessmentPage';
+import AptitudeAssessmentPage from './pages/assessment/AptitudeAssessmentPage';
+import FullAssessmentPage from './pages/assessment/FullAssessmentPage';
+import ResultsDashboardPage from './pages/assessment/ResultsDashboardPage';
+
 export default function App() {
   return (
     <BrowserRouter>
@@ -44,6 +50,12 @@ export default function App() {
         <Route path="/reports" element={<ReportsPage />} />
         <Route path="/evaluation" element={<EvaluationPage />} />
         <Route path="/demo" element={<LiveDemoPage />} />
+        
+        {/* Assessment Routes */}
+        <Route path="/assessment/full" element={<FullAssessmentPage />} />
+        <Route path="/assessment/coding" element={<CodingAssessmentPage />} />
+        <Route path="/assessment/aptitude" element={<AptitudeAssessmentPage />} />
+        <Route path="/assessment/results" element={<ResultsDashboardPage />} />
       </Routes>
       <Footer />
     </BrowserRouter>

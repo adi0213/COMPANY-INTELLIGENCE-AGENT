@@ -1,15 +1,22 @@
 import { create } from 'zustand';
 
+export interface AgentResponse {
+  content: string;
+  confidence?: number;
+  sources?: number;
+  source_types?: string[];
+}
+
 export interface CompanyResult {
   company: string;
-  overview: string;
-  latest_developments: string;
-  key_technologies: string;
-  business_areas: string;
-  interview_focus: string;
-  hiring_trends: string;
-  salary_insights: string;
-  executive_summary: string;
+  overview: AgentResponse;
+  latest_developments: AgentResponse;
+  key_technologies: AgentResponse;
+  business_areas: AgentResponse;
+  interview_focus: AgentResponse;
+  hiring_trends: AgentResponse;
+  salary_insights: AgentResponse;
+  executive_summary: AgentResponse;
 }
 
 interface CompanyState {

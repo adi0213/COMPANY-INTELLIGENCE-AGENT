@@ -85,9 +85,9 @@ async def analyze_company(company_name: str) -> Dict[str, Any]:
     # ── Step 4: Run All Agents (PARALLEL with limits) ────────────
     logger.info(f"[CompanyAnalyzer] Step 5/5: Running specialized agents concurrently...")
     
-    # Limit to 3 concurrent RAG executions to prevent OpenBLAS out-of-memory errors
-    # during concurrent sentence-transformer embeddings
-    semaphore = asyncio.Semaphore(3)
+    # Limit to 10 concurrent RAG executions.
+    # OpenBLAS OOM is now prevented by a thread lock in rag_service.py
+    semaphore = asyncio.Semaphore(10)
 
     async def _safe_execute_async(agent, question: str) -> Dict[str, Any]:
         """Execute an agent concurrently, apply quality gate, return structured output."""

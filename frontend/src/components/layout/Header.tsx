@@ -21,14 +21,21 @@ const learnLinks = [
   { to: '/demo', label: 'Live Demo' },
 ];
 
+const assessmentLinks = [
+  { to: '/assessment/full', label: '★ Full Assessment' },
+  { to: '/assessment/coding', label: 'Coding Assessment' },
+  { to: '/assessment/aptitude', label: 'Aptitude Assessment' },
+];
+
 export default function Header() {
   const [showLearn, setShowLearn] = useState(false);
+  const [showAssessment, setShowAssessment] = useState(false);
 
   return (
     <nav className="nav">
       <div className="nav__inner">
-        <NavLink to="/" className="nav__logo">
-          <span className="nav__logo-dot" />
+        <NavLink to="/" className="nav__logo" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <img src="/Logo_symbol.png" alt="CIA Logo" style={{ height: '32px', width: 'auto' }} />
           CIA_
         </NavLink>
 
@@ -48,7 +55,10 @@ export default function Header() {
           <div style={{ position: 'relative' }}>
             <button
               className={`nav__link ${showLearn ? 'nav__link--active' : ''}`}
-              onClick={() => setShowLearn(!showLearn)}
+              onClick={() => {
+                setShowAssessment(false);
+                setShowLearn(!showLearn);
+              }}
               style={{ background: 'none', cursor: 'pointer', fontFamily: 'inherit' }}
             >
               Learn {showLearn ? '▲' : '▼'}
@@ -72,6 +82,46 @@ export default function Header() {
                     key={l.to}
                     to={l.to}
                     onClick={() => setShowLearn(false)}
+                    className={({ isActive }) => `nav__link${isActive ? ' nav__link--active' : ''}`}
+                    style={{ display: 'block', padding: '6px 16px', width: '100%' }}
+                  >
+                    {l.label}
+                  </NavLink>
+                ))}
+              </div>
+            )}
+          </div>
+          {/* Assessment dropdown toggle */}
+          <div style={{ position: 'relative' }}>
+            <button
+              className={`nav__link`}
+              onClick={() => {
+                setShowLearn(false);
+                setShowAssessment(!showAssessment);
+              }}
+              style={{ background: 'none', cursor: 'pointer', fontFamily: 'inherit' }}
+            >
+              Assessment Center {showAssessment ? '▲' : '▼'}
+            </button>
+
+            {showAssessment && (
+              <div style={{
+                position: 'absolute',
+                top: '100%',
+                right: 0,
+                marginTop: 4,
+                background: '#F8F6F0',
+                border: '3px solid #000',
+                boxShadow: '4px 4px 0px #000',
+                padding: '8px 0',
+                zIndex: 200,
+                minWidth: 200,
+              }}>
+                {assessmentLinks.map(l => (
+                  <NavLink
+                    key={l.to}
+                    to={l.to}
+                    onClick={() => setShowAssessment(false)}
                     className={({ isActive }) => `nav__link${isActive ? ' nav__link--active' : ''}`}
                     style={{ display: 'block', padding: '6px 16px', width: '100%' }}
                   >

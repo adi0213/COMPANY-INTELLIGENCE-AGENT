@@ -12,6 +12,10 @@ User Query -> Retriever -> Reranker -> Context Builder -> Prompt Builder -> LLM 
 
 import logging
 from typing import Dict, Any, List
+import threading
+
+# Thread lock for sentence-transformers to avoid OpenBLAS OOM during concurrent embedding
+_embedding_lock = threading.Lock()
 
 from app.rag.retriever import Retriever
 from app.rag.reranker import Reranker
@@ -48,13 +52,13 @@ def execute_rag_pipeline(company_name: str, question: str) -> Dict[str, Any]:
     """
     logger.info(f"Executing RAG pipeline for company: {company_name}")
     
-    # 1. Retrieve (High Recall)
+    # 1. Retrieve & Rerank inside lock to prevent OpenBLAS OOM
     # Filter metadata to only search documents belonging to this specific company
     filter_metadata = {"company": company_name} if company_name else None
-    raw_chunks = retriever.retrieve(question, filter_metadata=filter_metadata)
     
-    # 2. Rerank (High Precision)
-    top_chunks = reranker.rerank(question, raw_chunks)
+    with _embedding_lock:
+        raw_chunks = retriever.retrieve(question, filter_metadata=filter_metadata)
+        top_chunks = reranker.rerank(question, raw_chunks)
     
     # 3. Build Context (even if empty — the LLM will use world knowledge)
     context_str = context_builder.build_context(top_chunks)
