@@ -26,16 +26,17 @@ class SkillAnalysisAgent:
         user_prompt = f"Assessment Type: {assessment_type}\n\nRaw Results:\n{json.dumps(raw_results, indent=2)}\n\nGenerate the skill analysis JSON."
 
         try:
-            response = self.generator.generate(system_prompt, user_prompt)
-            response = response.strip()
-            if response.startswith("```json"):
-                response = response[7:]
-            if response.startswith("```"):
-                response = response[3:]
-            if response.endswith("```"):
-                response = response[:-3]
+            import re
+            response = self.generator.generate(system_prompt, user_prompt, json_mode=True)
+            
+            # Use regex to robustly extract JSON object
+            json_match = re.search(r'\{.*\}', response, re.DOTALL)
+            if json_match:
+                json_str = json_match.group(0)
+            else:
+                json_str = "{}"
 
-            analysis = json.loads(response.strip())
+            analysis = json.loads(json_str)
             
             # Validation
             required_keys = ['strengths', 'weaknesses', 'focus_areas']

@@ -14,7 +14,16 @@ class CodingEvaluationService:
         """
         Evaluate a user's coding solution using the LLM.
         """
-        if not user_solution or not user_solution.strip():
+        # Strip language tag to check if actually empty
+        clean_solution = user_solution
+        if user_solution and user_solution.startswith("[LANGUAGE:"):
+            parts = user_solution.split("]\n", 1)
+            if len(parts) > 1:
+                clean_solution = parts[1]
+            else:
+                clean_solution = ""
+                
+        if not clean_solution or not clean_solution.strip():
             return {
                 "correctness": 0,
                 "logic": 0,

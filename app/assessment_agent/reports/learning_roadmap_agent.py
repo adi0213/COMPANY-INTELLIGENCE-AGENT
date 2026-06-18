@@ -26,16 +26,17 @@ class LearningRoadmapAgent:
         user_prompt = f"Skill Analysis:\n{json.dumps(skill_analysis, indent=2)}\n\nGenerate the 4-week roadmap JSON."
 
         try:
-            response = self.generator.generate(system_prompt, user_prompt)
-            response = response.strip()
-            if response.startswith("```json"):
-                response = response[7:]
-            if response.startswith("```"):
-                response = response[3:]
-            if response.endswith("```"):
-                response = response[:-3]
+            import re
+            response = self.generator.generate(system_prompt, user_prompt, json_mode=True)
+            
+            # Use regex to robustly extract JSON object
+            json_match = re.search(r'\{.*\}', response, re.DOTALL)
+            if json_match:
+                json_str = json_match.group(0)
+            else:
+                json_str = "{}"
 
-            roadmap = json.loads(response.strip())
+            roadmap = json.loads(json_str)
             
             # Validation
             required_keys = ['week_1', 'week_2', 'week_3', 'week_4']
