@@ -23,21 +23,16 @@ An autonomous AI research pipeline and brutalist web dashboard that synthesizes 
 
 ## 📸 Showcase
 
-*(Add your screenshots to the `docs/` folder in your repository to display them here!)*
-
 ### Intelligence Dashboard
-> **[Insert Screenshot Here]**
-> `![Intelligence Dashboard](docs/dashboard.png)`
+![Intelligence Dashboard](docs/dashboard.png)
 *The main intelligence view, displaying real-time AI confidence scores and structured company data.*
 
 ### System Architecture
-> **[Insert Screenshot Here]**
-> `![Architecture Flow](docs/architecture.png)`
+![Architecture Flow](docs/architecture.png)
 *The animated S-Curve pipeline visualizing the flow of data from raw internet ingestion to vector database embeddings.*
 
 ### Assessment Agent
-> **[Insert Screenshot Here]**
-> `![Assessment Tool](docs/assessment.png)`
+![Assessment Tool](docs/assessment.png)
 *Dynamic aptitude and coding evaluations tailored to the specific company's hiring profile.*
 
 ---
