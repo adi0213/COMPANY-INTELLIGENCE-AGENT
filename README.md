@@ -96,8 +96,8 @@ WEBSHARE_PROXY=your_proxy_here
 ```
 
 ## 🌍 Deployment
-- **Backend:** Deployed on Render (`https://company-intelligence-agent-6hca.onrender.com`)
-- **Frontend:** Deployed on Netlify with CI/CD hooked to the `COMPANY-INTELLIGENCE-AGENT-WEB` repository.
+The full web platform is deployed and accessible at:
+- **[https://company-intelligence-agent.netlify.app/](https://company-intelligence-agent.netlify.app/)**
 
 ---
 **© 2026 Developed by [Adith S](https://github.com/adi0213)**
